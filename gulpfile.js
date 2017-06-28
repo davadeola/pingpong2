@@ -1,3 +1,5 @@
+//Remember to restart the server after changing the gulpfile.using gulp serve
+
 var gulp = require('gulp');
 var browserify = require('browserify');
 var source = require('vinyl-source-stream');
@@ -9,16 +11,16 @@ var pump = require('pump');
 var jshint = require('gulp-jshint');
 var lib = require('bower-files')(
   {
- "overrides":{
-   "bootstrap" : {
-     "main": [
-       "less/bootstrap.less",
-      "dist/css/bootstrap.css",
-       "dist/js/bootstrap.js"
-     ]
-   }
- }
-}
+    "overrides":{
+      "bootstrap" : {
+        "main": [
+          "less/bootstrap.less",
+          "dist/css/bootstrap.css",
+          "dist/js/bootstrap.js"
+        ]
+      }
+    }
+  }
 );
 
 var browserSync = require('browser-sync').create();//create() creates our server
@@ -28,28 +30,28 @@ var buildProduction = utilities.env.production;//initiates a production environm
 
 gulp.task('concatInterface', function() {
   return gulp.src(['./js/*-interface.js'])
-    .pipe(concat('allConcat.js'))
-    .pipe(gulp.dest('./tmp'));
+  .pipe(concat('allConcat.js'))
+  .pipe(gulp.dest('./tmp'));
 });
 
 gulp.task('jsBrowserify', ['concatInterface'], function() {
   return browserify({ entries: ['./tmp/allConcat.js'] })
-    .bundle()
-    .pipe(source('app.js'))
-    .pipe(gulp.dest('./build/js'));
+  .bundle()
+  .pipe(source('app.js'))
+  .pipe(gulp.dest('./build/js'));
 });
 
 gulp.task("minifyScripts", ["jsBrowserify"], function(){
   return gulp.src("./build/js/app.js")
-    .pipe(uglify())
-    .pipe(gulp.dest("./build/js"));
+  .pipe(uglify())
+  .pipe(gulp.dest("./build/js"));
 });
 
 gulp.task('bowerJS', function () {
   return gulp.src(lib.ext('js').files)//takes all javascriptfiles in the project
-    .pipe(concat('vendor.min.js'))//joins them to one file in vendor.min.js
-    .pipe(uglify())//minify it
-    .pipe(gulp.dest('./build/js'));//save the vendor.min.js in the build/js folder
+  .pipe(concat('vendor.min.js'))//joins them to one file in vendor.min.js
+  .pipe(uglify())//minify it
+  .pipe(gulp.dest('./build/js'));//save the vendor.min.js in the build/js folder
 });
 
 gulp.task('bowerCSS', function(){
@@ -77,17 +79,7 @@ gulp.task("build", ["clean"], function(){
   gulp.start('bower');//this will run our bower files no matter the environment we may be in
 });
 
-gulp.task('serve', function() {
-  browserSync.init({//this will start our server
-    server: {
-      baseDir: "./",//tells the browser to launch the server from the local directory that we are creating.
-      index: "index.html"//tells the browser that the entry point to our app is index.html
-    }
-  });
-  gulp.watch(['js/*. js'], ['jsBuild']);//this will automatically update all js files in the js folder once changed and run jsBuild
-  gulp.watch(['bower.json'], ['bowerBuild']);
 
-});
 
 gulp.task('jsBuild', ['jsBrowserify', 'jshint'], function(){
   browserSync.reload();//reloads the browser
@@ -97,15 +89,26 @@ gulp.task('bowerBuild', ['bower'], function(){
   browserSync.reload();
 });
 
-
-
-
-
-
+gulp.task('htmlBuild', function(){
+  browserSync.reload();
+});
 
 
 gulp.task('jshint', function(){
   return gulp.src(['js/*.js'])
-    .pipe(jshint())
-    .pipe(jshint.reporter('default'));
+  .pipe(jshint())
+  .pipe(jshint.reporter('default'));
+});
+
+gulp.task('serve', function() {
+  browserSync.init({//this will start our server
+    server: {
+      baseDir: "./",//tells the browser to launch the server from the local directory that we are creating.
+      index: "index.html"//tells the browser that the entry point to our app is index.html
+    }
+  });
+  gulp.watch(['js/*.js'], ['jsBuild']);//this will automatically update all js files in the js folder once changed and run jsBuild
+  gulp.watch(['bower.json'], ['bowerBuild']);
+  gulp.watch(['*.html'], ['htmlBuild']);//watches for changes in all html pages and makes live changes to all of them
+
 });
